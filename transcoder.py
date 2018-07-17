@@ -88,19 +88,23 @@ class AutoTranscode(object):
     }
     # The SQS queue needs a policy to allow the SNS topic to post to it.
     queue_policy_statement = {
-        "Sid": "auto-transcode",
-        "Effect": "Allow",
-        "Principal": {
-            "AWS": "*"
-        },
-        "Action": "SQS:SendMessage",
-        "Resource": "<SQS QUEUE ARN>",
-        "Condition": {
-            "StringLike": {
-                "aws:SourceArn": "<SNS TOPIC ARN>"
-            }
-        }
-    }
+                  "Version": "2012-10-17",
+                  "Id": "sqs_event",
+                  "Statement": [{
+                       "Sid": "auto-transcode",
+                        "Effect": "Allow",
+                        "Principal": {
+                            "AWS": "*"
+                        },
+                        "Action": "SQS:SendMessage",
+                        "Resource": "<SQS QUEUE ARN>",
+                        "Condition": {
+                            "StringLike": {
+                                "aws:SourceArn": "<SNS TOPIC ARN>"
+                            }
+                        }
+                    }]
+                }
     # This is the default configuration which must be edited.
     empty_config_data = {
         'unconverted_directory': "<PLEASE PROVIDE A LOCAL DIRECTORY FOR INPUT FILES>",
@@ -344,8 +348,8 @@ class AutoTranscode(object):
 
         if 'Statement' not in policy:
             statement = self.queue_policy_statement
-            statement['Resource'] = self.queue_arn
-            statement['Condition']['StringLike']['aws:SourceArn'] = \
+            statement['Statement'][0]['Resource'] = self.queue_arn
+            statement['Statement'][0]['Condition']['StringLike']['aws:SourceArn'] = \
                 self.topic_arn
             policy['Statement'] = [statement]
 
